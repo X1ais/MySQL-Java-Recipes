@@ -58,7 +58,7 @@ public class Recipe {
 		return recipe;
 	}
 
-	public int getRecipeId() {
+	public Integer getRecipeId() {
 		return recipeId;
 	}
 	

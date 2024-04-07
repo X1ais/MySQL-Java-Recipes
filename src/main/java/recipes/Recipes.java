@@ -1,12 +1,10 @@
 package recipes;
 
-import java.sql.Connection;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
-import recipes.dao.DbConnection;
 import recipes.entity.Recipe;
 import recipes.exception.DbException;
 import recipes.service.RecipeService;
@@ -14,11 +12,14 @@ import recipes.service.RecipeService;
 public class Recipes {
 	private Scanner scanner = new Scanner(System.in);
 	private RecipeService recipeService = new RecipeService();
+	private Recipe currentRecipe;
 	
 	// @formatter:off
 	private List<String> operations = List.of(
 			"1) Create and populate all tables",
-			"2) Add a recipe"
+			"2) Add a recipe",
+			"3) List recipes",
+			"4) Select a recipe"
 	);
 	// @formatter:on
 	
@@ -49,12 +50,18 @@ public class Recipes {
 				case 2:
 					addRecipe();
 					break;
+				case 3:
+					listRecipes();
+					break;
+				case 4:
+					setCurrentRecipe();
+					break;
 				default:
 					System.out.println("\n" + operation + " is not valid. Try again.");
 					break;
 				}
 			} catch (Exception e) {
-				System.out.println("\nError: " + e.toString() + " Try again.");
+				System.out.println("\nError: " + e.toString() + ". Try again.");
 			}
 		}
 	}
@@ -62,6 +69,44 @@ public class Recipes {
 	
 	
 	
+	private void setCurrentRecipe() {
+		List<Recipe> recipes = listRecipes();
+		
+		Integer recipeId = getIntInput("Select a recipe ID");
+		
+		currentRecipe = null;
+		
+		for(Recipe recipe : recipes) {
+			if (recipe.getRecipeId().equals(recipeId)){
+				currentRecipe = recipeService.fetchRecipeById(recipeId);
+				break;
+			}
+		}
+		
+		if(Objects.isNull(currentRecipe)) {
+			System.out.println("\nInvalid recipe selected.");
+		} else {
+			System.out.println("\nYou are working with recipe: ");
+			System.out.println(currentRecipe.toString());
+		}
+	}
+
+
+
+
+	private List<Recipe> listRecipes() {
+		List<Recipe> recipes = recipeService.fetchRecipes();
+		
+		System.out.println("\nRecipes:");
+		
+		recipes.forEach(recipe -> System.out.println("\t" + recipe.getRecipeId() + ": " + recipe.getRecipeName()));	
+		
+		return recipes;
+	}
+
+
+
+
 	private void addRecipe() {
 		String name = getStringInput("Enter the recipe name");
 		String notes = getStringInput("Enter the recipe notes");
@@ -82,6 +127,8 @@ public class Recipes {
 		
 		Recipe dbRecipe = recipeService.addRecipe(recipe);
 		System.out.println("You added this recipe: \n" + dbRecipe);
+		
+		currentRecipe = recipeService.fetchRecipeById(dbRecipe.getRecipeId());
 	}
 
 
